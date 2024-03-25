@@ -1,7 +1,6 @@
 import gymnasium as gym
 import numpy as np
 import time
-import sys
 
 
 class CartPoleQLearningAgent:
