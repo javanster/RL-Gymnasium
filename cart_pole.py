@@ -6,7 +6,7 @@ import sys
 
 class CartPoleQLearningAgent:
     """
-    A class for an agent to solve the Cart Pole problem using Q learning
+    A class for an agent to solve the Cart Pole problem using Q-Learning
     with epsilon-greedy strategy
 
     Inspired by an implementation by Aleksandar Haber: https://aleksandarhaber.com/q-learning-in-python-with-tests-in-cart-pole-openai-gym-environment-reinforcement-learning-tutorial/
