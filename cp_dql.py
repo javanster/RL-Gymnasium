@@ -154,9 +154,10 @@ class CartPoleDQLAgent:
             state, _ = self.train_env.reset()
             total_reward = 0
             terminal_state = False
-            while not terminal_state:
+            truncated_state = False
+            while not (terminal_state or truncated_state):
                 action = self.select_action_epsilon_greedy(state, episode)
-                next_state, reward, terminal_state, _, _ = self.train_env.step(
+                next_state, reward, terminal_state, truncated_state, _ = self.train_env.step(
                     action)
                 total_reward += reward
                 self.replay_buffer.append(
