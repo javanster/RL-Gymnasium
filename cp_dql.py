@@ -1,3 +1,4 @@
+import time
 import gymnasium as gym
 import numpy as np
 import random
@@ -46,19 +47,17 @@ class CartPoleDQLAgent:
 
         return keras.losses.mean_squared_error(tf.gather_nd(target_y, indices.astype(int)), tf.gather_nd(predict_y, indices.astype(int)))
 
-    def select_action(self, state, episode):
-        if episode < 1:
-            return np.random.choice(self.action_dimension)
-
+    def select_action_epsilon_greedy(self, state, episode):
         if episode > 200:
             self.epsilon = 0.999 * self.epsilon
-
-        if np.random.random() < self.epsilon:
+        if episode < 1 or np.random.random() < self.epsilon:
             return np.random.choice(self.action_dimension)
-
         else:
-            q_values = self.online_network.predict(state.reshape(1, 4))
-            return np.random.choice(np.where(q_values[0, :] == np.max(q_values[0, :]))[0])
+            self.select_action_greedy(state)
+
+    def select_action_greedy(self, state):
+        q_values = self.online_network.predict(state.reshape(1, 4))
+        return np.random.choice(np.where(q_values[0, :] == np.max(q_values[0, :]))[0])
 
     def train_network(self):
         if len(self.replay_buffer) >= self.batch_size:
@@ -81,7 +80,7 @@ class CartPoleDQLAgent:
                 (self.batch_size, self.action_dimension))
 
             self.selected_actions = []
-            for i, (state, action, reward, next_state, terminal_state) in enumerate(random_batch):
+            for i, (_, action, reward, _, terminal_state) in enumerate(random_batch):
                 q_value = reward
                 if not terminal_state:
                     q_value = reward + self.gamma * \
@@ -107,7 +106,7 @@ class CartPoleDQLAgent:
             total_reward = 0
             terminal_state = False
             while not terminal_state:
-                action = self.select_action(state, episode)
+                action = self.select_action_epsilon_greedy(state, episode)
                 next_state, reward, terminal_state, _, _ = self.train_env.step(
                     action)
                 total_reward += reward
@@ -116,6 +115,27 @@ class CartPoleDQLAgent:
                 self.train_network()
                 state = next_state
             print(f"Episode: {episode}, Total Reward: {total_reward}")
+        self.online_network.save("cartpole_dql.h5")
+
+    def test(self):
+        self.online_network = keras.models.load_model(
+            "cartpole_dql.h5", custom_objects={'loss_function': self.loss_function})
+        state, _ = self.test_env.reset()
+        self.test_env.render()
+        max_time_steps = 10000
+        reward_sum = 0
+
+        for time_step in range(max_time_steps):
+            print(f"Time {time_step}")
+            action = self.select_action_greedy(state)
+            state, reward, terminated, _, _ = self.test_env.step(
+                action)
+            reward_sum += reward
+            time.sleep(0.05)
+            if (terminated):
+                time.sleep(1)
+                break
+        return reward_sum
 
 
 def __main__():
@@ -124,7 +144,7 @@ def __main__():
     episode_count = 1000
     agent = CartPoleDQLAgent(gamma, epsilon, episode_count)
     agent.train()
-    agent.online_network.save("cartpole_dql.h5")
+    agent.online_network.save("cartpole_dql.h5")  # Remove this later
 
 
 __main__()
