@@ -147,7 +147,8 @@ class CartPoleDQLAgent:
         """
         Trains the agent in the environment. The agent performs the action recommended by
         the online network given the current state, and updates the network based on the reward it
-        receives after performing the action, using the Deep Q-Learning algorithm.
+        receives after performing the action, using the Deep Q-Learning algorithm. Lastly, saves the
+        trained online network to a file.
         """
         for episode in range(self.episode_count):
             state, _ = self.train_env.reset()
