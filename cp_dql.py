@@ -44,6 +44,8 @@ class CartPoleDQLAgent:
         Intitializes a neural network model for the agent to use. The model is a simple
         feedforward network with 2 hidden layers. Used both for the online and target
         network.
+
+        :return: The initialized neural network model
         """
         model = keras.Sequential()
         model.add(keras.layers.Input(shape=(self.state_dimension,)))
@@ -61,6 +63,7 @@ class CartPoleDQLAgent:
 
         :param target_y: The target values
         :param predict_y: The predicted values
+        :return: The loss value
         """
         shape_1, shape_2 = target_y.shape
 
@@ -79,6 +82,7 @@ class CartPoleDQLAgent:
 
         :param state: The current state
         :param episode: The current episode
+        :return: The selected action
         """
         if episode > 200:
             self.epsilon = 0.999 * self.epsilon
@@ -92,6 +96,7 @@ class CartPoleDQLAgent:
         Selects an action based on the greedy strategy. Chooses the action with the highest Q-value.
 
         :param state: The current state
+        :return: The selected action
         """
         q_values = self.online_network.predict(state.reshape(1, 4))
         return np.random.choice(np.where(q_values[0, :] == np.max(q_values[0, :]))[0])
@@ -186,7 +191,6 @@ class CartPoleDQLAgent:
             if (terminated):
                 time.sleep(1)
                 break
-        return reward_sum
 
 
 def __main__():
