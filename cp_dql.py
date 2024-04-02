@@ -26,7 +26,7 @@ class CartPoleDQLAgent:
         self.gamma = gamma
         self.epsilon = epsilon
         self.episode_count = episode_count
-        self.time_steps = time_steps
+        self.time_steps = time_steps    # For testing
         self.state_dimension = 4
         self.action_dimension = 2
         self.replay_buffer_size = 300
@@ -85,7 +85,7 @@ class CartPoleDQLAgent:
         if episode < 30 or np.random.random() < self.epsilon:
             return np.random.choice(self.action_dimension)
         else:
-            self.select_action_greedy(state)
+            return self.select_action_greedy(state)
 
     def select_action_greedy(self, state):
         """
@@ -148,7 +148,7 @@ class CartPoleDQLAgent:
         Trains the agent in the environment. The agent performs the action recommended by
         the online network given the current state, and updates the network based on the reward it
         receives after performing the action, using the Deep Q-Learning algorithm. Lastly, saves the
-        trained online network to a file.
+        weights of the online network to a file.
         """
         for episode in range(self.episode_count):
             state, _ = self.train_env.reset()
@@ -164,15 +164,14 @@ class CartPoleDQLAgent:
                     (state, action, reward, next_state, terminal_state))
                 self.train_network()
                 state = next_state
-            print(f"Episode: {episode}, Total Reward: {total_reward}")
-        self.online_network.save("cartpole_dql.keras")
+            print(f"Episode: {episode + 1}, total reward: {total_reward}")
+        self.online_network.save_weights("cartpole_dql.weights.h5")
 
     def test(self):
         """
-        Tests the agent in the simulated environment, given the trained online network.
+        Tests the agent in the simulated environment, given the trained online network weights.
         """
-        self.online_network = keras.models.load_model(
-            "cartpole_dql.keras")
+        self.online_network.load_weights("cartpole_dql.weights.h5")
         state, _ = self.test_env.reset()
         self.test_env.render()
         reward_sum = 0
@@ -193,8 +192,8 @@ class CartPoleDQLAgent:
 def __main__():
     gamma = 1
     epsilon = 0.1
-    episode_count = 3
-    time_steps = 10000
+    episode_count = 100
+    time_steps = 10000  # Max time steps for testing
     agent = CartPoleDQLAgent(gamma, epsilon, episode_count, time_steps)
     agent.train()
     agent.test()
