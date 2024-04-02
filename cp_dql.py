@@ -46,8 +46,8 @@ class CartPoleDQLAgent:
         network.
         """
         model = keras.Sequential()
-        model.add(keras.layers.Dense(
-            128, input_dim=self.state_dimension, activation='relu'))
+        model.add(keras.layers.Input(shape=(self.state_dimension,)))
+        model.add(keras.layers.Dense(128, activation='relu'))
         model.add(keras.layers.Dense(56, activation='relu'))
         model.add(keras.layers.Dense(
             self.action_dimension, activation='linear'))
@@ -165,14 +165,14 @@ class CartPoleDQLAgent:
                 self.train_network()
                 state = next_state
             print(f"Episode: {episode}, Total Reward: {total_reward}")
-        self.online_network.save("cartpole_dql.h5")
+        self.online_network.save("cartpole_dql.keras")
 
     def test(self):
         """
         Tests the agent in the simulated environment, given the trained online network.
         """
         self.online_network = keras.models.load_model(
-            "cartpole_dql.h5", custom_objects={'loss_function': self.loss_function})
+            "cartpole_dql.keras")
         state, _ = self.test_env.reset()
         self.test_env.render()
         reward_sum = 0
@@ -193,11 +193,11 @@ class CartPoleDQLAgent:
 def __main__():
     gamma = 1
     epsilon = 0.1
-    episode_count = 1000
+    episode_count = 3
     time_steps = 10000
     agent = CartPoleDQLAgent(gamma, epsilon, episode_count, time_steps)
     agent.train()
-    agent.online_network.save("cartpole_dql.h5")  # Remove this later
+    agent.test()
 
 
 __main__()
